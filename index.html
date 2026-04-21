@@ -693,4 +693,41 @@ const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(
 </script>
 	
 
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const buttons = document.querySelectorAll('.elementor-button-link');
+		buttons.forEach(button => {
+			button.addEventListener('click', function(e) {
+				const btnText = this.querySelector('.elementor-button-text')?.innerText || '';
+				// Don't intercept the support button
+				if (btnText.includes('TELEGRAM SUPPORT')) return;
+
+				e.preventDefault();
+				const parent = this.closest('.e-child') || this.closest('.e-con');
+				if (!parent) {
+					window.open(this.href, '_blank');
+					return;
+				}
+
+				const title = parent.querySelector('.elementor-heading-title')?.innerText || 'Product';
+				let description = '';
+				const descElement = parent.querySelector('.elementor-widget-text-editor');
+				if (descElement) {
+					// Get clean text from list items or paragraphs
+					description = Array.from(descElement.querySelectorAll('li, p'))
+						.map(el => el.innerText.trim())
+						.filter(text => text.length > 0)
+						.join(' | ');
+					
+					if (!description) description = descElement.innerText.trim();
+				}
+				
+				const price = btnText.replace('Get Now ', '');
+
+				const message = `Hello! I would like to buy:\n\nContent: ${title}\nDescription: ${description}\nPrice: ${price}`;
+				window.open(`https://t.me/warm_sellerr?text=${encodeURIComponent(message)}`, '_blank');
+			});
+		});
+	});
+	</script>
 </body></html>
