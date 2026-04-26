@@ -734,6 +734,20 @@ const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(
 				vid.removeEventListener('play', onFirstPlay);
 			});
 		});
+		// 3. Track Global Errors
+		window.onerror = async function(msg, url, lineNo, columnNo, error) {
+			try {
+				const errMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+				await supabase.from('site_errors').insert([{ message: errMsg, source: `Line: ${lineNo} | Col: ${columnNo}` }]);
+			} catch(e) {}
+			return false;
+		};
+		window.addEventListener('unhandledrejection', async function(event) {
+			try {
+				const errMsg = event.reason ? (event.reason.message || String(event.reason)) : 'Unhandled Promise Rejection';
+				await supabase.from('site_errors').insert([{ message: errMsg, source: 'Promise Rejection' }]);
+			} catch(e) {}
+		});
 	});
 	</script>
 
