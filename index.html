@@ -693,7 +693,52 @@ const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(
 </script>
 	
 
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		// Init Supabase for tracking
+		const SUPABASE_URL = 'https://fisjdxqjezqrqxlhrcrr.supabase.co';
+		const SUPABASE_KEY = 'sb_publishable_ATYzqtCrVRPDsWlQawe8ig_08jIOCqt'; 
+		const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+		async function trackDailyStat(type) {
+			try {
+				const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Maputo' }); // YYYY-MM-DD
+				
+				// Try to get today's record
+				const { data: currentStats } = await supabase.from('site_stats').select('*').eq('date', today).single();
+				
+				if (currentStats) {
+					// Update existing
+					const updates = {};
+					if (type === 'visit') updates.visits = (currentStats.visits || 0) + 1;
+					if (type === 'view') updates.views = (currentStats.views || 0) + 1;
+					await supabase.from('site_stats').update(updates).eq('id', currentStats.id);
+				} else {
+					// Create new
+					const newRecord = { date: today, visits: type === 'visit' ? 1 : 0, views: type === 'view' ? 1 : 0 };
+					await supabase.from('site_stats').insert([newRecord]);
+				}
+			} catch (err) { console.error('Tracking error:', err); }
+		}
+
+		// 1. Track Visit on Page Load
+		trackDailyStat('visit');
+
+		// 2. Track Video Plays
+		const allVideos = document.querySelectorAll('video');
+		allVideos.forEach(vid => {
+			vid.addEventListener('play', function onFirstPlay() {
+				trackDailyStat('view');
+				// Remove listener after first play so we don't count pauses/resumes as multiple views
+				vid.removeEventListener('play', onFirstPlay);
+			});
+		});
+	});
+	</script>
+
+	<script>
+	// Original Telegram buttons script
 	document.addEventListener('DOMContentLoaded', function() {
 		const buttons = document.querySelectorAll('.elementor-button-link');
 		buttons.forEach(button => {
